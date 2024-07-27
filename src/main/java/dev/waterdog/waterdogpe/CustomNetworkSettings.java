@@ -73,7 +73,7 @@ public class CustomNetworkSettings extends Bedrock_v685 {
             .insert(9815, LevelEvent.PARTICLE_SMASH_ATTACK_GROUND_DUST)
             .build();
 
-    public static final BedrockCodec CODEC = Bedrock_v671.CODEC.toBuilder()
+    public static final BedrockCodec CUSTOM_CODEC_v671 = Bedrock_v671.CODEC.toBuilder()
             .raknetProtocolVersion(11)
             .protocolVersion(686)
             .minecraftVersion("1.21.2")
