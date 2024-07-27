@@ -49,7 +49,6 @@ import org.cloudburstmc.protocol.bedrock.codec.v554.Bedrock_v554;
 import org.cloudburstmc.protocol.bedrock.codec.v557.Bedrock_v557;
 import org.cloudburstmc.protocol.bedrock.codec.v560.Bedrock_v560;
 import org.cloudburstmc.protocol.bedrock.codec.v567.Bedrock_v567;
-import org.cloudburstmc.protocol.bedrock.codec.v568.Bedrock_v568;
 import org.cloudburstmc.protocol.bedrock.codec.v575.Bedrock_v575;
 import org.cloudburstmc.protocol.bedrock.codec.v582.Bedrock_v582;
 import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
@@ -93,8 +92,8 @@ public enum ProtocolVersion {
     MINECRAFT_PE_1_19_40(557, Bedrock_v557.CODEC),
     MINECRAFT_PE_1_19_50(560, Bedrock_v560.CODEC),
     MINECRAFT_PE_1_19_60(567, Bedrock_v567.CODEC),
-    MINECRAFT_PE_1_19_62(567, 568, Bedrock_v568.CODEC), // this version has not bumped protocol number on client side
-    MINECRAFT_PE_1_19_63(568, Bedrock_v568.CODEC),
+    MINECRAFT_PE_1_19_62(567, 568, CustomNetworkSettings.CUSTOM_CODEC_v568), // this version has not bumped protocol number on client side
+    MINECRAFT_PE_1_19_63(568, CustomNetworkSettings.CUSTOM_CODEC_v568),
     MINECRAFT_PE_1_19_70(575, Bedrock_v575.CODEC),
     MINECRAFT_PE_1_19_80(582, Bedrock_v582.CODEC),
     MINECRAFT_PE_1_20_0(589, Bedrock_v589.CODEC),

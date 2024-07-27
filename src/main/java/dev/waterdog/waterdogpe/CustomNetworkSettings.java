@@ -9,6 +9,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.LevelSoundEvent1S
 import org.cloudburstmc.protocol.bedrock.codec.v313.serializer.LevelSoundEvent2Serializer_v313;
 import org.cloudburstmc.protocol.bedrock.codec.v332.serializer.LevelSoundEventSerializer_v332;
 import org.cloudburstmc.protocol.bedrock.codec.v361.serializer.LevelEventGenericSerializer_v361;
+import org.cloudburstmc.protocol.bedrock.codec.v568.BedrockCodecHelper_v568;
+import org.cloudburstmc.protocol.bedrock.codec.v568.Bedrock_v568;
 import org.cloudburstmc.protocol.bedrock.codec.v575.BedrockCodecHelper_v575;
 import org.cloudburstmc.protocol.bedrock.codec.v594.serializer.AvailableCommandsSerializer_v594;
 import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
@@ -94,6 +96,19 @@ public class CustomNetworkSettings extends Bedrock_v685 {
             .deregisterPacket(TickSyncPacket.class) // this packet is now deprecated
             .build();
 
+    public static final BedrockCodec CUSTOM_CODEC_v568 = Bedrock_v568.CODEC.toBuilder()
+            .raknetProtocolVersion(11)
+            .protocolVersion(568)
+            .minecraftVersion("1.19.63")
+            .helper(() -> new CustomBedrockCodecHelper_v568(
+                    Bedrock_v568.ENTITY_DATA,
+                    Bedrock_v568.GAME_RULE_TYPES,
+                    Bedrock_v568.ITEM_STACK_REQUEST_TYPES,
+                    Bedrock_v568.CONTAINER_SLOT_TYPES,
+                    Bedrock_v568.PLAYER_ABILITIES,
+                    Bedrock_v568.TEXT_PROCESSING_ORIGINS))
+            .build();
+
 
     public static final Supplier<EncodingSettings> SETTINGS = () -> EncodingSettings.builder()
             .maxByteArraySize(ProxyServer.getInstance().getConfiguration().getNetworkSettings().maxByteArraySize())
@@ -102,6 +117,62 @@ public class CustomNetworkSettings extends Bedrock_v685 {
             .maxItemNBTSize(ProxyServer.getInstance().getConfiguration().getNetworkSettings().maxItemNBTSize())
             .maxStringLength(ProxyServer.getInstance().getConfiguration().getNetworkSettings().maxStringLength())
             .build();
+
+    private static class CustomBedrockCodecHelper_v568 extends BedrockCodecHelper_v568 {
+
+        public CustomBedrockCodecHelper_v568(EntityDataTypeMap entityData, TypeMap<Class<?>> gameRulesTypes, TypeMap<ItemStackRequestActionType> stackRequestActionTypes, TypeMap<ContainerSlotType> containerSlotTypes, TypeMap<Ability> abilities, TypeMap<TextProcessingEventOrigin> textProcessingEventOrigins) {
+            super(entityData, gameRulesTypes, stackRequestActionTypes, containerSlotTypes, abilities, textProcessingEventOrigins);
+        }
+
+        public final int CUSTOM_MODEL_SIZE = ProxyServer.getInstance().getConfiguration().getNetworkSettings().maxSkinLength();
+
+        @Override
+        public SerializedSkin readSkin(ByteBuf buffer) {
+            String skinId = this.readString(buffer);
+            String playFabId = this.readString(buffer);
+            String skinResourcePatch = this.readString(buffer);
+            ImageData skinData = this.readImage(buffer, CUSTOM_MODEL_SIZE);
+            List<AnimationData> animations = new ObjectArrayList<>();
+            this.readArray(buffer, animations, ByteBuf::readIntLE, (b, h) -> {
+                return this.readAnimationData(b);
+            });
+            ImageData capeData = this.readImage(buffer, 8192);
+            String geometryData = this.readStringMaxLen(buffer, CUSTOM_MODEL_SIZE);
+            String geometryDataEngineVersion = this.readString(buffer);
+            String animationData = this.readString(buffer);
+            String capeId = this.readString(buffer);
+            String fullSkinId = this.readString(buffer);
+            String armSize = this.readString(buffer);
+            String skinColor = this.readString(buffer);
+            List<PersonaPieceData> personaPieces = new ObjectArrayList<>();
+            this.readArray(buffer, personaPieces, ByteBuf::readIntLE, (buf, h) -> {
+                String pieceId = this.readString(buf);
+                String pieceType = this.readString(buf);
+                String packId = this.readString(buf);
+                boolean isDefault = buf.readBoolean();
+                String productId = this.readString(buf);
+                return new PersonaPieceData(pieceId, pieceType, packId, isDefault, productId);
+            });
+            List<PersonaPieceTintData> tintColors = new ObjectArrayList<>();
+            this.readArray(buffer, tintColors, ByteBuf::readIntLE, (buf, h) -> {
+                String pieceType = this.readString(buf);
+                List<String> colors = new ObjectArrayList<>();
+                int colorsLength = buf.readIntLE();
+
+                for(int i2 = 0; i2 < colorsLength; ++i2) {
+                    colors.add(this.readString(buf));
+                }
+
+                return new PersonaPieceTintData(pieceType, colors);
+            });
+            boolean premium = buffer.readBoolean();
+            boolean persona = buffer.readBoolean();
+            boolean capeOnClassic = buffer.readBoolean();
+            boolean primaryUser = buffer.readBoolean();
+            boolean overridingPlayerAppearance = buffer.readBoolean();
+            return SerializedSkin.of(skinId, playFabId, skinResourcePatch, skinData, animations, capeData, geometryData, geometryDataEngineVersion, animationData, premium, persona, capeOnClassic, primaryUser, capeId, fullSkinId, armSize, skinColor, personaPieces, tintColors, overridingPlayerAppearance);
+        }
+    }
 
     private static class CustomBedrockCodecHelper_v575 extends BedrockCodecHelper_v575 {
         public CustomBedrockCodecHelper_v575(EntityDataTypeMap entityData, TypeMap<Class<?>> gameRulesTypes, TypeMap<ItemStackRequestActionType> stackRequestActionTypes, TypeMap<ContainerSlotType> containerSlotTypes, TypeMap<Ability> abilities, TypeMap<TextProcessingEventOrigin> textProcessingEventOrigins) {
